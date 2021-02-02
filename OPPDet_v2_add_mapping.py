@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-import cv2 as cv
+# import cv2 as cv
 import argparse
 import sys
 import os.path
@@ -282,7 +282,7 @@ parser = argparse.ArgumentParser(description='Object Detection using YOLO in OPE
 parser.add_argument('--image', help='Path to image file.')
 #parser.add_argument('--video', help='Path to video file.')
 #parser.add_argument('--video', default="C:/Users/HJ/Desktop/video_cap_test/video/1.mp4", help='Path to video file.')
-parser.add_argument('--video', default="C:/Users/HJ/Desktop/video_cap_test/spv/t80.mp4", help='Path to video file.')
+parser.add_argument('--video', default="C:/Users/MDL/Desktop/DAU/dau/01_dev/1_not_sync/2020local/Cam_A/test_vid/t80.mp4", help='Path to video file.')
 args = parser.parse_args()
 
 # Load names of classes
@@ -294,12 +294,12 @@ with open(classesFile, 'rt') as f:
 
 # Give the configuration and weight files for the model and load the network using them.
 
-modelConfiguration = "custom_steel_cfg/steel_plate.cfg";
-modelWeights = "weights/steel_plate_8n.weights";
+modelConfiguration = "custom_steel_cfg/steel_plate.cfg"
+modelWeights = "weights/steel_plate_last_8n.weights"
 
-net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
-net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
-net.setPreferableTarget(cv.dnn.DNN_TARGET_CPU)
+net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
+net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
 bbox_coor_x = []
 bbox_coor_y = []
@@ -316,18 +316,18 @@ def getOutputsNames(net):
     return [layersNames[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
 def drawPred(classId, conf, left, top, right, bottom):
-    cv.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 1)
+    cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 1)
     label = '%.2f' % conf
 
     if classes:
         assert (classId < len(classes))
         label = '%s:%s' % (classes[classId], label)
 
-    labelSize, baseLine = cv.getTextSize(label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+    labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
     top = max(top, labelSize[1])
-    cv.rectangle(frame, (left, top - round(1.5 * labelSize[1])), (left + round(1.5 * labelSize[0]), top + baseLine),
+    cv2.rectangle(frame, (left, top - round(1.5 * labelSize[1])), (left + round(1.5 * labelSize[0]), top + baseLine),
                  (0, 0, 255), 1)
-    cv.putText(frame, label, (left, top), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
+    cv2.putText(frame, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
 
 def postprocess(frame, outs):
     frameHeight = frame.shape[0]
@@ -371,7 +371,7 @@ def postprocess(frame, outs):
                 bbox_coor_x.append(l + w / 2)
                 bbox_coor_y.append(t + h / 2)
 
-    indices = cv.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
+    indices = cv2.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
     for i in indices:
         #print('--------------')
         # print(i)
@@ -400,15 +400,15 @@ elif (args.video):
     if not os.path.isfile(args.video):
         print("Input video file ", args.video, " doesn't exist")
         sys.exit(1)
-    cap = cv.VideoCapture(args.video)
+    cap = cv2.VideoCapture(args.video)
     outputFile = args.video[:-4] + '_yolo_out_py.avi'
 else:
     # Webcam input
     cap = cv.VideoCapture(0)
 
 if (not args.image):
-    vid_writer = cv.VideoWriter(outputFile, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
-                                (round(cap.get(cv.CAP_PROP_FRAME_WIDTH)), round(cap.get(cv.CAP_PROP_FRAME_HEIGHT))))
+    vid_writer = cv2.VideoWriter(outputFile, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
+                                (round(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), round(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))))
 
 # frame_width =  int(cap.get(cv.CAP_PROP_FRAME_WIDTH))   # float
 # frame_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))  # float
@@ -454,7 +454,7 @@ while cap.isOpened():
         cv2.circle(grid_bg_out, (int(x1_predict_future), int(y1_predict_future)), 10, (0, 0, 255), -1)
         cv2.circle(grid_bg_in, (int(x2_predict_future), int(y2_predict_future)), 10, (255, 0, 0), -1)
 
-    blob = cv.dnn.blobFromImage(frame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
+    blob = cv2.dnn.blobFromImage(frame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
 
     net.setInput(blob)
 
@@ -463,21 +463,21 @@ while cap.isOpened():
     postprocess(frame, outs)
 
     t, _ = net.getPerfProfile()
-    label = 'Inference time: %.2f ms' % (t * 1000.0 / cv.getTickFrequency())
+    label = 'Inference time: %.2f ms' % (t * 1000.0 / cv2.getTickFrequency())
     #cv.putText(frame, label, (0, 15), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
     grid_bg = np.hstack((grid_bg_out, grid_bg_in))
     frame = np.hstack((frame, grid_bg))
 
     #final_frame = cv.resize(frame, (600, 600))# Resize image
-    final_frame= cv.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
-    cv.imshow('licence plate detection', final_frame)
+    final_frame= cv2.resize(frame, dsize=(0, 0), fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+    cv2.imshow('licence plate detection', final_frame)
 
     if (args.image):
-        cv.imwrite(outputFile, frame.astype(np.uint8));
+        cv2.imwrite(outputFile, frame.astype(np.uint8));
     else:
         vid_writer.write(frame.astype(np.uint8))
-        cv.imwrite(outputFile2, frame.astype(np.uint8));
+        cv2.imwrite(outputFile2, frame.astype(np.uint8));
 
     if cv2.waitKey(1) == ord('q'):
     #if len(bbox_coor_x) > 30:
